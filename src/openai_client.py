@@ -51,10 +51,12 @@ def generate_image(prompt):
     try:
         logger.debug(f"Generating image with prompt: {prompt}")
         response = client.images.generate(
+            model="dall-e-3",
             prompt=prompt,
-            n=1,
-            size="512x512",
+            quality= "hd",
+            size="1024x1024",
             response_format="b64_json"
+            n=1,
         )
         image_b64 = response.data[0].b64_json
         logger.debug("Image generated successfully.")
