@@ -12,11 +12,18 @@ A comprehensive Python-based bot that integrates OpenAI's ChatGPT with Mattermos
   - [3. Install Dependencies](#3-install-dependencies)
   - [4. Configure Environment Variables](#4-configure-environment-variables)
 - [Usage](#usage)
+  - [Starting the Bot](#starting-the-bot)
+  - [Available Commands](#available-commands)
 - [Configuration](#configuration)
   - [Environment Variables](#environment-variables)
+- [Architecture](#architecture)
+- [OpenAI API Integration](#openai-api-integration)
+- [Mattermost Client Integration](#mattermost-client-integration)
 - [Plugins](#plugins)
 - [Development](#development)
+  - [Adding New Plugins](#adding-new-plugins)
 - [Deployment](#deployment)
+- [Testing](#testing)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -24,6 +31,9 @@ A comprehensive Python-based bot that integrates OpenAI's ChatGPT with Mattermos
 
 - **Automated Responses**: Instantly responds to user queries within Mattermost channels.
 - **Rich Media Support**: Handles audio, file uploads, and image generation using OpenAI's APIs.
+  - **Chat Responses**: Engage in intelligent conversations.
+  - **Image Generation**: Create images based on textual descriptions.
+  - **Audio Transcription**: Transcribe audio files into text.
 - **Plugin System**: Extendable architecture allowing for custom functionalities.
 - **Secure Configuration**: Manages sensitive information through environment variables.
 - **Dockerized Deployment**: Simplifies deployment with Docker support.
@@ -127,13 +137,73 @@ PLUGINS=image-plugin,graph-plugin,audio-plugin,files-plugin
 
 ## Usage
 
+### Starting the Bot
+
 Once the environment is configured, you can start the bot:
 
 ```bash
-python src ....
+python src/botservice.py
 ```
 
 **Note:** Ensure that your virtual environment is activated before running the bot.
+
+### Available Commands
+
+The bot supports several commands to utilize OpenAI's advanced features:
+
+- **Chat Command**
+
+  **Usage:**
+
+  ```
+  /chat [your message]
+  ```
+
+  **Example:**
+
+  ```
+  /chat What's the weather like today?
+  ```
+
+  **Description:**
+
+  Engages in a conversation with the bot. Sends the provided message to OpenAI's ChatCompletion API and returns the assistant's reply.
+
+- **Image Generation Command**
+
+  **Usage:**
+
+  ```
+  /image [description]
+  ```
+
+  **Example:**
+
+  ```
+  /image A serene landscape with mountains and a river during sunset.
+  ```
+
+  **Description:**
+
+  Generates an image based on the provided description using OpenAI's DALL-E API and uploads it to the Mattermost channel.
+
+- **Audio Transcription Command**
+
+  **Usage:**
+
+  ```
+  /transcribe [audio file]
+  ```
+
+  **Example:**
+
+  ```
+  /transcribe path/to/audio/file.wav
+  ```
+
+  **Description:**
+
+  Transcribes the provided audio file into text using OpenAI's Whisper API.
 
 ## Configuration
 
@@ -159,6 +229,109 @@ All configurations are managed via environment variables defined in the `.env` f
 
 - **Plugins Configuration:**
   - `PLUGINS`: Enables specific plugins by listing them comma-separated.
+
+## Architecture
+
+The ChatGPT-Mattermost Bot is designed with a modular architecture to ensure scalability and maintainability. The core components are:
+
+- **Mattermost Client (`mattermost_client.py`):** Handles communication with Mattermost's APIs.
+- **OpenAI Client (`openai_client.py`):** Interfaces with OpenAI's APIs.
+- **Bot Service (`botservice.py`):** Orchestrates the bot's operations.
+- **Command Handler (`command_handler.py`):** Parses and executes user commands.
+- **Plugins (`plugins/`):** Contains plugins to extend bot functionality.
+- **Configuration (`config.py`):** Manages configuration settings.
+- **Logging (`logging.py`):** Manages logging across modules.
+
+### Data Flow
+
+1. **Event Listening:** The Mattermost Client listens for new messages.
+2. **Message Handling:** The Bot Service processes messages and uses the Command Handler to interpret commands.
+3. **API Interaction:** The OpenAI Client interacts with OpenAI's APIs to generate responses.
+4. **Response Dispatch:** The Mattermost Client sends responses back to Mattermost channels.
+
+## OpenAI API Integration
+
+The ChatGPT-Mattermost Bot leverages OpenAI's APIs to provide advanced functionalities, including:
+
+- **Chat Responses:** Generates intelligent and context-aware replies to user messages.
+- **Image Generation:** Creates images based on textual descriptions using OpenAI's DALL-E API.
+- **Audio Transcription:** Transcribes audio files into text using OpenAI's Whisper API.
+
+### How It Works
+
+- **Chat Responses:** When a user sends a message in Mattermost, the bot forwards the message to OpenAI's ChatCompletion API, which processes the input and returns a relevant response.
+- **Image Generation:** Users can request image creation by providing a description. The bot uses the Image API to generate the image and shares it within the channel.
+- **Audio Transcription:** Users can upload audio files, which the bot transcribes into text using the Whisper API and shares the transcription.
+
+### Configuration
+
+Ensure the following environment variables are set in your `.env` file:
+
+```env
+# OpenAI Configuration
+OPENAI_API_KEY=your_openai_api_key
+OPENAI_API_BASE=https://api.openai.com/v1
+OPENAI_MODEL_NAME=gpt-4
+OPENAI_MAX_TOKENS=1500
+OPENAI_TEMPERATURE=0.7
+```
+
+### Testing OpenAI Integration
+
+To verify that the OpenAI integration is functioning correctly, run the provided test script:
+
+```bash
+python src/test_openai.py
+```
+
+Ensure that you receive appropriate responses, generated images, and transcribed text based on your inputs.
+
+## Mattermost Client Integration
+
+The ChatGPT-Mattermost Bot includes a dedicated Mattermost client to handle interactions with the Mattermost server. This client manages sending and receiving messages, handling WebSocket connections, and performing necessary operations to ensure seamless bot functionality.
+
+### Features
+
+- **WebSocket Connection:** Listens for real-time events such as new messages.
+- **Message Posting:** Sends messages to specific channels or direct messages.
+- **User Management:** Retrieves user information and manages direct channels.
+- **Event Handling:** Processes incoming events and triggers appropriate responses.
+
+### Configuration
+
+Ensure the following environment variables are set in your `.env` file:
+
+```env
+# Mattermost Configuration
+MATTERMOST_URL=https://your-mattermost-server.com
+MATTERMOST_TOKEN=your_mattermost_bot_token
+MATTERMOST_BOTNAME=@chatgpt-bot
+```
+
+### Testing the Mattermost Client
+
+To verify that the Mattermost client is functioning correctly, run the provided test script:
+
+```bash
+python src/test_mattermost_client.py
+```
+
+**Expected Output:**
+
+```
+Bot User Info: { ... }
+User Info: { ... }
+Direct Channel ID: abc123...
+Post Message Response: { ... }
+```
+
+**Check in Mattermost:**
+
+- Ensure that the bot posts a message saying "Hello from the Mattermost client!" in the direct channel.
+
+### Integration with Bot Service
+
+The `botservice.py` utilizes the `MattermostClient` to listen for incoming messages and respond accordingly. It handles command parsing and delegates tasks to OpenAI's APIs based on user input.
 
 ## Plugins
 
@@ -196,6 +369,22 @@ Before deploying, ensure that all functionalities work as expected by writing an
 ## Deployment
 
 For production deployment, consider containerizing the application using Docker and orchestrating with tools like Docker Compose or Kubernetes. Ensure that environment variables are securely managed and that the bot has the necessary permissions within Mattermost.
+
+## Testing
+
+Ensure all components work as expected by running test scripts and verifying interactions within Mattermost.
+
+- **OpenAI Integration Test:**
+
+  ```bash
+  python src/test_openai.py
+  ```
+
+- **Mattermost Client Test:**
+
+  ```bash
+  python src/test_mattermost_client.py
+  ```
 
 ## Contributing
 
