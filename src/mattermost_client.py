@@ -148,33 +148,62 @@ class MattermostClient:
 class WebSocketClient:
     def __init__(self, mattermost_client):
         self.mm_client = mattermost_client
-        self.listeners = []
+        self.message_listeners = []
+        self.ws = None
+        self.ws_thread = None
 
     def connect(self):
-        self.mm_client.connect()
+        # Get bot ID first
+        self.mm_client.bot_id = self.mm_client.get_me().get('id')
+        if not self.mm_client.bot_id:
+            logger.error("Failed to get bot ID. Check your token and permissions.")
+            return
+
+        # Establish WebSocket connection
+        api_url = self.mm_client.url.replace('https', 'wss').replace('http', 'ws') + '/api/v4/websocket'
+        logger.info(f"Connecting to Mattermost WebSocket at {api_url}")
+        headers = [
+            f"Authorization: Bearer {self.mm_client.token}"
+        ]
+        self.ws = websocket.WebSocketApp(
+            api_url,
+            header=headers,
+            on_open=self.on_open,
+            on_message=self.on_message,
+            on_error=self.on_error,
+            on_close=self.on_close
+        )
+        self.ws_thread = threading.Thread(target=self.ws.run_forever)
+        self.ws_thread.daemon = True
+        self.ws_thread.start()
+        # Wait for connection establishment
+        time.sleep(1)
+        logger.info("Connected to Mattermost WebSocket.")
+
+    def on_open(self, ws):
+        logger.info("WebSocket connection opened.")
+
+    def on_message(self, ws, message):
+        event_data = json.loads(message)
+        logger.debug(f"Received WebSocket message: {event_data}")
+        for listener in self.message_listeners:
+            listener(event_data)
+
+    def on_error(self, ws, error):
+        logger.error(f"WebSocket encountered error: {error}")
+
+    def on_close(self, ws, close_status_code, close_msg):
+        logger.info(f"WebSocket connection closed. Code: {close_status_code}, Message: {close_msg}")
 
     def add_message_listener(self, callback):
         """
         Adds a listener for incoming messages.
         :param callback: Function to handle incoming messages.
         """
-        self.mm_client.add_message_listener(callback)
-
-    def post_message(self, channel_id, message, root_id=None, file_ids=None, props=None):
-        """
-        Sends a message via the Mattermost client.
-        """
-        self.mm_client.post_message(channel_id, message, root_id, file_ids, props)
-
-    def get_user(self, user_id):
-        return self.mm_client.get_user(user_id)
-
-    def get_me(self):
-        return self.mm_client.get_me()
-
-    def get_direct_channel_id(self, user_id):
-        return self.mm_client.get_direct_channel_id(user_id)
+        self.message_listeners.append(callback)
 
     def close(self):
-        if self.mm_client.ws:
-            self.mm_client.ws.close()
+        if self.ws:
+            self.ws.close()
+            self.ws_thread.join()
+            logger.info("WebSocket connection closed and thread joined.")
