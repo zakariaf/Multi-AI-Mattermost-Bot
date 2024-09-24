@@ -1,0 +1,23 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+ENV/
+env/
+.env
+
+# VS Code
+.vscode/
+
+# Logs
+*.log
+
+# MacOS
+.DS_Store
+
+# IDEs
+*.sublime-project
+*.sublime-workspace
