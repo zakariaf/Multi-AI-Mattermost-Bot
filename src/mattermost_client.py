@@ -145,6 +145,24 @@ class MattermostClient:
             logger.error(f"Failed to get/create direct channel: {response.status_code} - {response.text}")
             return None
 
+    def get_file_info(self, file_id):
+        response = requests.get(f"{self.url}/api/v4/files/{file_id}/info", headers=self.headers)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            logger.error(f"Failed to get file info: {response.status_code} - {response.text}")
+            return None
+
+    def download_file(self, file_id):
+      response = requests.get(f"{self.url}/api/v4/files/{file_id}", headers=self.headers)
+      if response.status_code == 200:
+          file_path = f"/tmp/{file_id}"
+          with open(file_path, 'wb') as f:
+              f.write(response.content)
+          return file_path
+      else:
+          logger.error(f"Failed to download file: {response.status_code} - {response.text}")
+          return None
 class WebSocketClient:
     def __init__(self, mattermost_client):
         self.mm_client = mattermost_client
