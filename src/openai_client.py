@@ -55,7 +55,7 @@ def generate_image(prompt):
             prompt=prompt,
             quality= "hd",
             size="1024x1024",
-            response_format="b64_json"
+            response_format="b64_json",
             n=1,
         )
         image_b64 = response.data[0].b64_json
