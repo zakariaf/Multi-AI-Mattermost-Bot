@@ -4,7 +4,7 @@ import threading
 import json
 import time
 import logging
-from config import MATTERMOST_URL, MATTERMOST_TOKEN, MATTERMOST_BOTNAME
+from .config import MATTERMOST_URL, MATTERMOST_TOKEN, MATTERMOST_BOTNAME
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)

@@ -1,5 +1,5 @@
 from openai import OpenAI
-from config import (
+from .config import (
     OPENAI_API_KEY,
     OPENAI_API_BASE,
     OPENAI_MODEL_NAME,

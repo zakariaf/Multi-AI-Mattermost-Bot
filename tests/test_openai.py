@@ -1,4 +1,8 @@
-from openai_client import generate_chat_response, generate_image, transcribe_audio
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from src.openai_client import generate_chat_response, generate_image, transcribe_audio
 
 def test_generate_chat_response():
     messages = [
@@ -20,7 +24,7 @@ def test_generate_image():
         print("Failed to generate image.")
 
 def test_transcribe_audio():
-    audio_file_path = "./src/sample_audio.wav"  # Replace with an actual audio file path
+    audio_file_path = "./tests/sample_audio.wav"  # Replace with an actual audio file path
     transcript = transcribe_audio(audio_file_path)
     print("Transcribed Text:", transcript)
 
