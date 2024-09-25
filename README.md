@@ -205,20 +205,87 @@ The bot supports several commands to utilize OpenAI's advanced features:
   **Usage:**
 
   ```
-  /audio <file_id> [--service <service_name>]
+  /audio <file_id|file_url|file_path> [--service <service_name>]
   ```
 
-  **Example:**
+  **Examples:**
 
-  ```
-  /audio abc123def456
-  ```
+  1. **Transcribe an Uploaded Audio File by `file_id`:**
+
+    ```
+    /audio abc123def456
+    ```
+
+  2. **Transcribe an Audio File via a Direct URL:**
+
+    ```
+    /audio https://example.com/path/to/audio.wav
+    ```
+
+  3. **Transcribe a Local Audio File on the Server:**
+
+    ```
+    /audio /path/to/local/audio.wav
+    ```
+
+  4. **Transcribe an Audio File Using a Specific Transcription Service:**
+
+    ```
+    /audio abc123def456 --service whisper
+    ```
 
   **Description:**
 
-  Transcribes the audio file with the given `file_id` using the specified audio service (default is OpenAI's Whisper API) and posts the transcription to the channel.
+  The `/audio` command allows you to transcribe audio files directly within Mattermost. You can provide the audio input in three different ways:
 
-**Note:** For the `/audio` command, you need to provide the `file_id` of an audio file that has been uploaded to Mattermost.
+  1. **`file_id`:**
+    - **Description:** The unique identifier of an audio file that has been uploaded to Mattermost.
+    - **Usage:** Obtain the `file_id` by uploading an audio file to a channel and retrieving its details.
+    - **Example:** `/audio abc123def456`
+
+  2. **`file_url`:**
+    - **Description:** A direct URL to an audio file accessible over the internet. This allows the bot to download and transcribe audio from external sources.
+    - **Usage:** Provide a valid URL pointing to an audio file (e.g., `.wav`, `.mp3`).
+    - **Example:** `/audio https://example.com/path/to/audio.wav`
+
+  3. **`file_path`:**
+    - **Description:** The absolute path to a local audio file on the server where the bot is running.
+    - **Usage:** Ensure that the bot has read access to the specified file path on the server.
+    - **Example:** `/audio /path/to/local/audio.wav`
+
+  Additionally, you can specify a transcription service using the optional `--service` flag. If not provided, the bot will use the default service configured in the bot settings.
+
+  **Optional `--service` Flag:**
+
+  ```
+  --service <service_name>
+  ```
+
+  - **Description:** Specifies the transcription service to use for processing the audio file.
+  - **Supported Services:** Depends on your bot's configuration (e.g., `openai`, `google`, `azure`).
+  - **Default Service:** If not specified, the bot uses the default service set in the configuration (e.g., OpenAI's Whisper API).
+  - **Example:** `/audio abc123def456 --service google`
+
+  **Example with Service Flag:**
+
+  ```
+  /audio https://example.com/path/to/audio.wav --service whisper
+  ```
+
+  **Note:**
+
+  - **Supported Audio Formats:** Ensure that the audio files are in supported formats such as `.wav` or `.mp3` to guarantee successful transcription.
+  - **Obtaining `file_id`:**
+    - Upload an audio file to a Mattermost channel.
+    - Click on the file to view its details.
+    - Retrieve the `file_id` from the file's URL or details pane.
+  - **Local File Access:** When using `file_path`, verify that the bot has the necessary permissions to access the specified path on the server.
+  - **Service Availability:**
+    - The availability of transcription services depends on your bot's configuration and the services you've integrated.
+    - Ensure that the specified service (e.g., `openai`) is correctly configured and accessible.
+  - **Security Considerations:**
+    - Be cautious when providing `file_path` to prevent unauthorized access to sensitive files on the server.
+    - Validate URLs to ensure they point to legitimate and secure audio sources.
 
 - **Help Command**
 
