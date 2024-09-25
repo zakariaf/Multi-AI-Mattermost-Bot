@@ -4,6 +4,7 @@ import threading
 import json
 import time
 import logging
+import shutil  # Added import
 from .config import MATTERMOST_URL, MATTERMOST_TOKEN, MATTERMOST_BOTNAME
 
 logger = logging.getLogger(__name__)
@@ -152,17 +153,25 @@ class MattermostClient:
             logger.error(f"Failed to get file info: {response.status_code} - {response.text}")
             return None
 
-    def download_file(self, file_id):
-        response = requests.get(f"{self.url}/api/v4/files/{file_id}", headers=self.headers)
-        if response.status_code == 200:
-            file_path = f"/tmp/{file_id}"
-            with open(file_path, 'wb') as f:
-               f.write(response.content)
-            logger.debug(f"File downloaded successfully to {file_path}.")
-            return file_path
-        else:
-            logger.error(f"Failed to download file: {response.status_code} - {response.text}")
-            return None
+    def download_file(self, file_id, destination_path):
+        """
+        Downloads a file from Mattermost using the file ID.
+        Saves the file to the specified destination path.
+        Returns True if successful, False otherwise.
+        """
+        try:
+            response = requests.get(f"{self.url}/api/v4/files/{file_id}", headers=self.headers, stream=True)
+            if response.status_code == 200:
+                with open(destination_path, 'wb') as f:
+                    shutil.copyfileobj(response.raw, f)
+                logger.debug(f"File downloaded successfully to {destination_path}.")
+                return True
+            else:
+                logger.error(f"Failed to download file: {response.status_code} - {response.text}")
+                return False
+        except Exception as e:
+            logger.error(f"Exception during file download: {e}")
+            return False
 
     def upload_file(self, channel_id, file_bytes, filename, mime_type='application/octet-stream'):
         """
