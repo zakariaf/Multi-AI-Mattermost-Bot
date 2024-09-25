@@ -25,6 +25,7 @@ class BotService:
             channel_id = post_data.get('channel_id')
             user_id = post_data.get('user_id')
             message = post_data.get('message', '').strip()
+            file_ids = post_data.get('file_ids', [])
 
             # Ignore messages from the bot itself
             if user_id == self.mm_client.bot_id:
@@ -32,12 +33,17 @@ class BotService:
 
             # Check if the message is a command
             if message.startswith('/'):
-                self.handle_command(channel_id, user_id, message)
+                self.handle_command(channel_id, user_id, message, file_ids)
             else:
                 self.handle_chat(channel_id, user_id, message)
 
-    def handle_command(self, channel_id, user_id, message):
+    def handle_command(self, channel_id, user_id, message, file_ids):
         command, *args = message[1:].split()
+
+        # If there are file_ids, append the first one to args
+        if file_ids:
+            args.append(file_ids[0])
+
         response = self.command_handler.execute(command, args, channel_id, user_id)
         if response:
             self.mm_client.post_message(channel_id, response)
