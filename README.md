@@ -1,6 +1,6 @@
 # ChatGPT-Mattermost Bot
 
-A comprehensive Python-based bot that integrates OpenAI's ChatGPT with Mattermost, enabling intelligent and automated interactions within your team's communication channels. This bot leverages the full capabilities of the OpenAI API, including chat, audio, file uploads, image generation, and more.
+A Python-based bot that integrates OpenAI's ChatGPT with Mattermost, enabling intelligent and automated interactions within your team's communication channels. This bot leverages the capabilities of the OpenAI API, including chat, audio transcription, and image generation.
 
 ## Table of Contents
 
@@ -20,9 +20,8 @@ A comprehensive Python-based bot that integrates OpenAI's ChatGPT with Mattermos
 - [OpenAI API Integration](#openai-api-integration)
 - [Mattermost Client Integration](#mattermost-client-integration)
 - [Plugins](#plugins)
-- [Development](#development)
   - [Adding New Plugins](#adding-new-plugins)
-- [Deployment](#deployment)
+- [Development](#development)
 - [Testing](#testing)
 - [Contributing](#contributing)
 - [License](#license)
@@ -30,13 +29,12 @@ A comprehensive Python-based bot that integrates OpenAI's ChatGPT with Mattermos
 ## Features
 
 - **Automated Responses**: Instantly responds to user queries within Mattermost channels.
-- **Rich Media Support**: Handles audio, file uploads, and image generation using OpenAI's APIs.
+- **Rich Media Support**: Handles audio transcription and image generation using OpenAI's APIs.
   - **Chat Responses**: Engage in intelligent conversations.
   - **Image Generation**: Create images based on textual descriptions.
   - **Audio Transcription**: Transcribe audio files into text.
 - **Plugin System**: Extendable architecture allowing for custom functionalities.
 - **Secure Configuration**: Manages sensitive information through environment variables.
-- **Dockerized Deployment**: Simplifies deployment with Docker support.
 
 ## Prerequisites
 
@@ -44,7 +42,7 @@ Before setting up the ChatGPT-Mattermost Bot, ensure you have the following:
 
 - **Python 3.8+**: Ensure Python is installed on your system. [Download Python](https://www.python.org/downloads/)
 - **Git**: For version control. [Download Git](https://git-scm.com/downloads)
-- **Mattermost Server Access**: Administrative access to your Mattermost instance.
+- **Mattermost Server Access**: Access to your Mattermost instance and a bot account with an access token.
 - **OpenAI API Key**: Obtain an API key from [OpenAI](https://platform.openai.com/account/api-keys).
 
 ## Installation
@@ -115,8 +113,16 @@ OPENAI_TEMPERATURE=0.7
 BOT_CONTEXT_MSG=50
 BOT_INSTRUCTION=You are a helpful assistant.
 
-# Optional: Plugins Configuration
-PLUGINS=image-plugin,graph-plugin,audio-plugin,files-plugin
+# Plugins Configuration
+PLUGINS=chat,image,audio
+
+# Service Configuration
+CHAT_SERVICE=openai
+IMAGE_SERVICE=dalle
+AUDIO_SERVICE=openai
+
+# Temporary Directory for file operations
+TEMP_DIR=/tmp/mattermost_bot
 ```
 
 **Notes:**
@@ -131,7 +137,9 @@ PLUGINS=image-plugin,graph-plugin,audio-plugin,files-plugin
 - **OPENAI_TEMPERATURE**: Sampling temperature for OpenAI responses.
 - **BOT_CONTEXT_MSG**: Number of previous messages to include in the context.
 - **BOT_INSTRUCTION**: System-level instructions for the bot.
-- **PLUGINS**: Comma-separated list of plugins to enable.
+- **PLUGINS**: Comma-separated list of plugins to enable (`chat,image,audio`).
+- **CHAT_SERVICE**, **IMAGE_SERVICE**, **AUDIO_SERVICE**: Default services to use for each plugin.
+- **TEMP_DIR**: Directory for temporary file storage.
 
 **Security Reminder:** Ensure that the `.env` file is **never** committed to version control. It's already included in `.gitignore`.
 
@@ -142,7 +150,7 @@ PLUGINS=image-plugin,graph-plugin,audio-plugin,files-plugin
 Once the environment is configured, you can start the bot:
 
 ```bash
-python src/botservice.py
+python run_bot.py
 ```
 
 **Note:** Ensure that your virtual environment is activated before running the bot.
@@ -156,7 +164,7 @@ The bot supports several commands to utilize OpenAI's advanced features:
   **Usage:**
 
   ```
-  /chat [your message]
+  /chat [--service <service_name>] <message>
   ```
 
   **Example:**
@@ -167,14 +175,14 @@ The bot supports several commands to utilize OpenAI's advanced features:
 
   **Description:**
 
-  Engages in a conversation with the bot. Sends the provided message to OpenAI's ChatCompletion API and returns the assistant's reply.
+  Engages in a conversation with the bot. Sends the provided message to the chat service (default is OpenAI's ChatCompletion API) and returns the assistant's reply.
 
 - **Image Generation Command**
 
   **Usage:**
 
   ```
-  /image [description]
+  /image <description> [--service <service_name>]
   ```
 
   **Example:**
@@ -185,25 +193,39 @@ The bot supports several commands to utilize OpenAI's advanced features:
 
   **Description:**
 
-  Generates an image based on the provided description using OpenAI's DALL-E API and uploads it to the Mattermost channel.
+  Generates an image based on the provided description using the specified image service (default is OpenAI's DALL-E API) and uploads it to the Mattermost channel.
 
 - **Audio Transcription Command**
 
   **Usage:**
 
   ```
-  /transcribe [audio file]
+  /audio <file_id> [--service <service_name>]
   ```
 
   **Example:**
 
   ```
-  /transcribe path/to/audio/file.wav
+  /audio abc123def456
   ```
 
   **Description:**
 
-  Transcribes the provided audio file into text using OpenAI's Whisper API.
+  Transcribes the audio file with the given `file_id` using the specified audio service (default is OpenAI's Whisper API) and posts the transcription to the channel.
+
+**Note:** For the `/audio` command, you need to provide the `file_id` of an audio file that has been uploaded to Mattermost.
+
+- **Help Command**
+
+  **Usage:**
+
+  ```
+  /help [plugin_name]
+  ```
+
+  **Description:**
+
+  Provides a list of available commands or detailed help for a specific plugin.
 
 ## Configuration
 
@@ -219,7 +241,7 @@ All configurations are managed via environment variables defined in the `.env` f
 - **OpenAI Configuration:**
   - `OPENAI_API_KEY`: API key for accessing OpenAI services.
   - `OPENAI_API_BASE`: Base endpoint for OpenAI API.
-  - `OPENAI_MODEL_NAME`: Specifies the OpenAI model to use.
+  - `OPENAI_MODEL_NAME`: Specifies the OpenAI model to use (e.g., `gpt-4`).
   - `OPENAI_MAX_TOKENS`: Sets the maximum tokens for responses.
   - `OPENAI_TEMPERATURE`: Controls the randomness of responses.
 
@@ -228,7 +250,15 @@ All configurations are managed via environment variables defined in the `.env` f
   - `BOT_INSTRUCTION`: System prompt guiding the bot's behavior.
 
 - **Plugins Configuration:**
-  - `PLUGINS`: Enables specific plugins by listing them comma-separated.
+  - `PLUGINS`: Enables specific plugins by listing them comma-separated (`chat,image,audio`).
+
+- **Service Configuration:**
+  - `CHAT_SERVICE`: Default chat service to use (`openai`).
+  - `IMAGE_SERVICE`: Default image generation service (`dalle`).
+  - `AUDIO_SERVICE`: Default audio transcription service (`openai`).
+
+- **Temporary Directory:**
+  - `TEMP_DIR`: Directory path for temporary file storage.
 
 ## Architecture
 
@@ -240,7 +270,6 @@ The ChatGPT-Mattermost Bot is designed with a modular architecture to ensure sca
 - **Command Handler (`command_handler.py`):** Parses and executes user commands.
 - **Plugins (`plugins/`):** Contains plugins to extend bot functionality.
 - **Configuration (`config.py`):** Manages configuration settings.
-- **Logging (`logging.py`):** Manages logging across modules.
 
 ### Data Flow
 
@@ -259,9 +288,9 @@ The ChatGPT-Mattermost Bot leverages OpenAI's APIs to provide advanced functiona
 
 ### How It Works
 
-- **Chat Responses:** When a user sends a message in Mattermost, the bot forwards the message to OpenAI's ChatCompletion API, which processes the input and returns a relevant response.
-- **Image Generation:** Users can request image creation by providing a description. The bot uses the Image API to generate the image and shares it within the channel.
-- **Audio Transcription:** Users can upload audio files, which the bot transcribes into text using the Whisper API and shares the transcription.
+- **Chat Responses:** When a user sends a message starting with `/chat`, the bot forwards the message to the chat service, which processes the input and returns a relevant response.
+- **Image Generation:** Users can request image creation by providing a description using the `/image` command. The bot uses the image service to generate the image and shares it within the channel.
+- **Audio Transcription:** Users can upload audio files and provide the file ID using the `/audio` command. The bot transcribes the audio and shares the transcription.
 
 ### Configuration
 
@@ -281,7 +310,7 @@ OPENAI_TEMPERATURE=0.7
 To verify that the OpenAI integration is functioning correctly, run the provided test script:
 
 ```bash
-python src/test_openai.py
+python tests/test_openai.py
 ```
 
 Ensure that you receive appropriate responses, generated images, and transcribed text based on your inputs.
@@ -313,7 +342,7 @@ MATTERMOST_BOTNAME=@chatgpt-bot
 To verify that the Mattermost client is functioning correctly, run the provided test script:
 
 ```bash
-python src/test_mattermost_client.py
+python tests/test_mattermost_client.py
 ```
 
 **Expected Output:**
@@ -327,48 +356,79 @@ Post Message Response: { ... }
 
 **Check in Mattermost:**
 
-- Ensure that the bot posts a message saying "Hello from the Mattermost client!" in the direct channel.
+- Ensure that the bot posts a test message in the specified channel or direct message.
 
 ### Integration with Bot Service
 
-The `botservice.py` utilizes the `MattermostClient` to listen for incoming messages and respond accordingly. It handles command parsing and delegates tasks to OpenAI's APIs based on user input.
+The `botservice.py` utilizes the `MattermostClient` to listen for incoming messages and respond accordingly. It handles command parsing and delegates tasks to the appropriate plugins based on user input.
 
 ## Plugins
 
 The bot supports a modular plugin system, allowing you to extend its functionalities. Available plugins include:
 
-- **Image Plugin (`image-plugin`)**: Generates images based on descriptions.
-- **Graph Plugin (`graph-plugin`)**: Creates graphs from data or descriptions.
-- **Audio Plugin (`audio-plugin`)**: Processes and generates audio content.
-- **Files Plugin (`files-plugin`)**: Handles file uploads and management.
+- **Chat Plugin (`chat`):** Handles general chat interactions.
+- **Image Plugin (`image`):** Generates images based on descriptions.
+- **Audio Plugin (`audio`):** Transcribes audio files.
 
 To enable or disable plugins, modify the `PLUGINS` variable in the `.env` file accordingly.
 
-## Development
+### Plugin Structure
+
+Each plugin is located in the `src/plugins/` directory and extends the `BasePlugin` class defined in `base_plugin.py`. Plugins must implement the following methods:
+
+- `name`: The name of the plugin.
+- `description`: A brief description of the plugin.
+- `usage`: Instructions on how to use the plugin.
+- `execute(args, channel_id, user_id)`: The main method that performs the plugin's functionality.
 
 ### Adding New Plugins
 
 1. **Create a New Plugin File:**
 
    ```bash
-   touch src/plugins/YourNewPlugin.py
+   touch src/plugins/your_plugin_name_plugin.py
    ```
 
 2. **Implement the Plugin:**
 
-   Define your plugin by extending the base plugin class.
+   Define your plugin by extending the `BasePlugin` class.
+
+   ```python
+   from src.plugins.base_plugin import BasePlugin
+
+   class YourPluginNamePlugin(BasePlugin):
+       name = "your_plugin_name"
+       description = "Description of your plugin"
+       usage = "/your_command <arguments>"
+
+       def execute(self, args, channel_id, user_id):
+           # Your plugin logic here
+           return "Plugin response"
+
+       def initialize(self):
+           # Optional initialization code
+           pass
+
+       def cleanup(self):
+           # Optional cleanup code
+           pass
+   ```
 
 3. **Register the Plugin:**
 
-   Update the bot service to recognize and initialize your new plugin.
+   Add your plugin to the `PLUGINS` variable in the `.env` file:
 
-### Testing
+   ```env
+   PLUGINS=chat,image,audio,your_plugin_name
+   ```
 
-Before deploying, ensure that all functionalities work as expected by writing and running tests.
+4. **Update `__init__.py`:**
 
-## Deployment
+   Ensure your plugin is loaded by the plugin system. The `get_plugins()` function in `src/plugins/__init__.py` will dynamically import plugins based on the `PLUGINS` variable.
 
-For production deployment, consider containerizing the application using Docker and orchestrating with tools like Docker Compose or Kubernetes. Ensure that environment variables are securely managed and that the bot has the necessary permissions within Mattermost.
+## Development
+
+Before deploying, ensure that all functionalities work as expected by writing and running tests. You can add tests in the `tests/` directory corresponding to your new plugins or features.
 
 ## Testing
 
@@ -377,13 +437,19 @@ Ensure all components work as expected by running test scripts and verifying int
 - **OpenAI Integration Test:**
 
   ```bash
-  python src/test_openai.py
+  python tests/test_openai.py
   ```
 
 - **Mattermost Client Test:**
 
   ```bash
-  python src/test_mattermost_client.py
+  python tests/test_mattermost_client.py
+  ```
+
+- **Plugin Tests:**
+
+  ```bash
+  python run_tests.py
   ```
 
 ## Contributing
