@@ -1,6 +1,6 @@
-# ChatGPT-Mattermost Bot
+# Multi-AI Mattermost Bot
 
-A Python-based bot that integrates OpenAI's ChatGPT with Mattermost, enabling intelligent and automated interactions within your team's communication channels. This bot leverages the capabilities of the OpenAI API, including chat, audio transcription, and image generation.
+A modular and extensible Python-based bot for Mattermost that integrates with various AI tools through a plugin architecture. This bot enables intelligent and automated interactions within your team's communication channels, supporting functionalities like chat, image generation, audio transcription, and more.
 
 ## Table of Contents
 
@@ -28,17 +28,15 @@ A Python-based bot that integrates OpenAI's ChatGPT with Mattermost, enabling in
 
 ## Features
 
-- **Automated Responses**: Instantly responds to user queries within Mattermost channels.
-- **Rich Media Support**: Handles audio transcription and image generation using OpenAI's APIs.
-  - **Chat Responses**: Engage in intelligent conversations.
-  - **Image Generation**: Create images based on textual descriptions.
-  - **Audio Transcription**: Transcribe audio files into text.
-- **Plugin System**: Extendable architecture allowing for custom functionalities.
-- **Secure Configuration**: Manages sensitive information through environment variables.
+- **Modular Plugin System:** Easily extend the bot's capabilities by adding new plugins for different AI services.
+- **Multi-AI Integration:** Supports integration with various AI tools (e.g., OpenAI, Hugging Face, custom models) through flexible clients.
+- **Automated Responses:** Instantly responds to user queries within Mattermost channels.
+- **Rich Media Support:** Handles chat, audio transcription, image generation, and more.
+- **Secure Configuration:** Manages sensitive information through environment variables.
 
 ## Prerequisites
 
-Before setting up the ChatGPT-Mattermost Bot, ensure you have the following:
+Before setting up the Multi-AI Mattermost Bot, ensure you have the following:
 
 - **Python 3.8+**: Ensure Python is installed on your system. [Download Python](https://www.python.org/downloads/)
 - **Git**: For version control. [Download Git](https://git-scm.com/downloads)
@@ -52,8 +50,8 @@ Before setting up the ChatGPT-Mattermost Bot, ensure you have the following:
 Begin by cloning the repository to your local machine:
 
 ```bash
-git clone https://github.com/yourusername/chatgpt-mattermost-bot.git
-cd chatgpt-mattermost-bot
+git clone https://github.com/zakariaf/Multi-AI-Mattermost-Bot.git
+cd Multi-AI-Mattermost-Bot
 ```
 
 ### 2. Create and Activate a Virtual Environment
@@ -100,7 +98,7 @@ Open the `.env` file in your preferred text editor and add the following variabl
 # Mattermost Configuration
 MATTERMOST_URL=https://your-mattermost-server.com
 MATTERMOST_TOKEN=your_mattermost_bot_token
-MATTERMOST_BOTNAME=@chatgpt-bot
+MATTERMOST_BOTNAME=@ai-bot
 
 # OpenAI Configuration
 OPENAI_API_KEY=your_openai_api_key
@@ -108,6 +106,13 @@ OPENAI_API_BASE=https://api.openai.com/v1
 OPENAI_MODEL_NAME=gpt-4
 OPENAI_MAX_TOKENS=1500
 OPENAI_TEMPERATURE=0.7
+
+# Hugging Face Configuration (if applicable)
+HUGGINGFACE_API_KEY=your_huggingface_api_key
+HUGGINGFACE_API_BASE=https://api-inference.huggingface.co/models
+
+# Custom Service Configuration
+CUSTOM_AI_API_KEY=your_custom_ai_api_key
 
 # Bot Configuration
 BOT_CONTEXT_MSG=50
@@ -129,7 +134,7 @@ TEMP_DIR=/tmp/mattermost_bot
 
 - **MATTERMOST_URL**: Your Mattermost server URL.
 - **MATTERMOST_TOKEN**: The access token obtained from creating a Mattermost bot account.
-- **MATTERMOST_BOTNAME**: Desired bot username (e.g., `@chatgpt-bot`).
+- **MATTERMOST_BOTNAME**: Desired bot username (e.g., `@ai-bot`).
 - **OPENAI_API_KEY**: Your OpenAI API key.
 - **OPENAI_API_BASE**: Base URL for OpenAI API (default is `https://api.openai.com/v1`).
 - **OPENAI_MODEL_NAME**: The OpenAI model to use (e.g., `gpt-4`).
@@ -236,7 +241,7 @@ All configurations are managed via environment variables defined in the `.env` f
 - **Mattermost Configuration:**
   - `MATTERMOST_URL`: URL of your Mattermost server.
   - `MATTERMOST_TOKEN`: Access token for the Mattermost bot.
-  - `MATTERMOST_BOTNAME`: Username of the bot (e.g., `@chatgpt-bot`).
+  - `MATTERMOST_BOTNAME`: Username of the bot (e.g., `@ai-bot`).
 
 - **OpenAI Configuration:**
   - `OPENAI_API_KEY`: API key for accessing OpenAI services.
@@ -262,7 +267,7 @@ All configurations are managed via environment variables defined in the `.env` f
 
 ## Architecture
 
-The ChatGPT-Mattermost Bot is designed with a modular architecture to ensure scalability and maintainability. The core components are:
+The Multi-AI Mattermost Bot is designed with a modular architecture to ensure scalability and maintainability. The core components are:
 
 - **Mattermost Client (`mattermost_client.py`):** Handles communication with Mattermost's APIs.
 - **OpenAI Client (`openai_client.py`):** Interfaces with OpenAI's APIs.
@@ -280,7 +285,7 @@ The ChatGPT-Mattermost Bot is designed with a modular architecture to ensure sca
 
 ## OpenAI API Integration
 
-The ChatGPT-Mattermost Bot leverages OpenAI's APIs to provide advanced functionalities, including:
+The Multi-AI Mattermost Bot leverages OpenAI's APIs to provide advanced functionalities, including:
 
 - **Chat Responses:** Generates intelligent and context-aware replies to user messages.
 - **Image Generation:** Creates images based on textual descriptions using OpenAI's DALL-E API.
@@ -317,7 +322,7 @@ Ensure that you receive appropriate responses, generated images, and transcribed
 
 ## Mattermost Client Integration
 
-The ChatGPT-Mattermost Bot includes a dedicated Mattermost client to handle interactions with the Mattermost server. This client manages sending and receiving messages, handling WebSocket connections, and performing necessary operations to ensure seamless bot functionality.
+The Multi-AI Mattermost Bot includes a dedicated Mattermost client to handle interactions with the Mattermost server. This client manages sending and receiving messages, handling WebSocket connections, and performing necessary operations to ensure seamless bot functionality.
 
 ### Features
 
@@ -334,7 +339,7 @@ Ensure the following environment variables are set in your `.env` file:
 # Mattermost Configuration
 MATTERMOST_URL=https://your-mattermost-server.com
 MATTERMOST_TOKEN=your_mattermost_bot_token
-MATTERMOST_BOTNAME=@chatgpt-bot
+MATTERMOST_BOTNAME=@ai-bot
 ```
 
 ### Testing the Mattermost Client
