@@ -164,6 +164,43 @@ class MattermostClient:
             logger.error(f"Failed to download file: {response.status_code} - {response.text}")
             return None
 
+    def upload_file(self, channel_id, file_bytes, filename, mime_type='application/octet-stream'):
+        """
+        Uploads a file to a specified Mattermost channel.
+
+        :param channel_id: ID of the channel where the file will be uploaded.
+        :param file_bytes: Binary content of the file.
+        :param filename: Name of the file.
+        :param mime_type: MIME type of the file.
+        :return: file_id if successful, None otherwise.
+        """
+        upload_url = f"{self.url}/api/v4/files"
+        headers = {
+            'Authorization': f'Bearer {self.token}'
+        }
+        files = {
+            'files': (filename, file_bytes, mime_type)
+        }
+        data = {
+            'channel_id': channel_id
+        }
+
+        logger.debug(f"Uploading file {filename} to channel {channel_id}.")
+        try:
+            response = requests.post(upload_url, headers=headers, files=files, data=data)
+            if response.status_code == 201:
+                json_response = response.json()
+                file_infos = json_response.get('file_infos')
+                file_id = file_infos[0].get('id')
+                logger.debug(f"File uploaded successfully with ID: {file_id}")
+                return file_id
+            else:
+                logger.error(f"Failed to upload file: {response.status_code} - {response.text}")
+                return None
+        except Exception as e:
+            logger.error(f"Exception during file upload: {e}")
+            return None
+
     def close(self):
         """
         Closes the WebSocket connection and performs any necessary cleanup.
