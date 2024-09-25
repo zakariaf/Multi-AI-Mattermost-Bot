@@ -22,37 +22,36 @@ class MattermostClient:
             'Authorization': f'Bearer {self.token}',
             'Content-Type': 'application/json'
         }
-        self.ws = None
-        self.ws_thread = None
-        self.message_listeners = []
         self.bot_id = None
+        self.ws_client = WebSocketClient(self)
+        self.message_listeners = []
 
     def connect(self):
-        # Get bot ID first
-        self.bot_id = self.get_me().get('id')
-        if not self.bot_id:
-            logger.error("Failed to get bot ID. Check your token and permissions.")
-            return
+        # Initialize and connect WebSocket client
+        self.ws_client.add_message_listener(self.handle_websocket_event)
+        self.ws_client.connect()
+        logger.info("MattermostClient connected.")
 
-        # Establish WebSocket connection
-        api_url = self.url + '/api/v4/websocket'
-        params = {
-            'token': self.token
-        }
-        ws_url = api_url + '?' + '&'.join([f'{k}={v}' for k, v in params.items()])
-        logger.info(f"Connecting to Mattermost WebSocket at {ws_url}")
-        self.ws = websocket.WebSocketApp(
-            ws_url,
-            on_message=self.on_message,
-            on_error=self.on_error,
-            on_close=self.on_close
-        )
-        self.ws_thread = threading.Thread(target=self.ws.run_forever)
-        self.ws_thread.daemon = True
-        self.ws_thread.start()
-        # Wait for connection establishment
-        time.sleep(1)
-        logger.info("Connected to Mattermost WebSocket.")
+    def handle_websocket_event(self, event_data):
+        """
+        Handles incoming WebSocket events and notifies listeners based on event type.
+        :param event_data: The JSON-decoded event data from WebSocket.
+        """
+        event = event_data.get('event')
+        if event == 'posted':
+            self.notify_listeners(event_data)
+        # Handle other event types as needed
+
+    def notify_listeners(self, data):
+        for listener in self.message_listeners:
+            listener(data)
+
+    def add_message_listener(self, callback):
+        """
+        Adds a listener for incoming messages.
+        :param callback: Function to handle incoming messages.
+        """
+        self.message_listeners.append(callback)
 
     def post_message(self, channel_id, message, root_id=None, file_ids=None, props=None):
         """
@@ -154,21 +153,31 @@ class MattermostClient:
             return None
 
     def download_file(self, file_id):
-      response = requests.get(f"{self.url}/api/v4/files/{file_id}", headers=self.headers)
-      if response.status_code == 200:
-          file_path = f"/tmp/{file_id}"
-          with open(file_path, 'wb') as f:
-              f.write(response.content)
-          return file_path
-      else:
-          logger.error(f"Failed to download file: {response.status_code} - {response.text}")
-          return None
+        response = requests.get(f"{self.url}/api/v4/files/{file_id}", headers=self.headers)
+        if response.status_code == 200:
+            file_path = f"/tmp/{file_id}"
+            with open(file_path, 'wb') as f:
+               f.write(response.content)
+            logger.debug(f"File downloaded successfully to {file_path}.")
+            return file_path
+        else:
+            logger.error(f"Failed to download file: {response.status_code} - {response.text}")
+            return None
+
+    def close(self):
+        """
+        Closes the WebSocket connection and performs any necessary cleanup.
+        """
+        self.ws_client.close()
+        logger.info("MattermostClient closed.")
+
 class WebSocketClient:
     def __init__(self, mattermost_client):
         self.mm_client = mattermost_client
         self.message_listeners = []
         self.ws = None
         self.ws_thread = None
+        self.reconnect_delay = 5  # seconds
 
     def connect(self):
         # Get bot ID first
@@ -191,31 +200,36 @@ class WebSocketClient:
             on_error=self.on_error,
             on_close=self.on_close
         )
-        self.ws_thread = threading.Thread(target=self.ws.run_forever)
-        self.ws_thread.daemon = True
+        self.ws_thread = threading.Thread(target=self.ws.run_forever, daemon=True)
         self.ws_thread.start()
         # Wait for connection establishment
         time.sleep(1)
-        logger.info("Connected to Mattermost WebSocket.")
+        logger.info("WebSocket connection thread started.")
 
     def on_open(self, ws):
         logger.info("WebSocket connection opened.")
 
     def on_message(self, ws, message):
-        event_data = json.loads(message)
-        logger.debug(f"Received WebSocket message: {event_data}")
-        for listener in self.message_listeners:
-            listener(event_data)
+        try:
+            event_data = json.loads(message)
+            logger.debug(f"Received WebSocket message: {event_data}")
+            for listener in self.message_listeners:
+                listener(event_data)
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to decode WebSocket message: {e}")
 
     def on_error(self, ws, error):
         logger.error(f"WebSocket encountered error: {error}")
 
     def on_close(self, ws, close_status_code, close_msg):
         logger.info(f"WebSocket connection closed. Code: {close_status_code}, Message: {close_msg}")
+        logger.info(f"Attempting to reconnect in {self.reconnect_delay} seconds...")
+        time.sleep(self.reconnect_delay)
+        self.connect()
 
     def add_message_listener(self, callback):
         """
-        Adds a listener for incoming messages.
+        Adds a listener for incoming WebSocket messages.
         :param callback: Function to handle incoming messages.
         """
         self.message_listeners.append(callback)
