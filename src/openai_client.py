@@ -88,10 +88,13 @@ def create_chat_completion(messages):
     :return: The completion response.
     """
     if OPENAI_MODEL_NAME in ["o1-mini", "o1-preview"]:
-        # temperature, top_p and n are fixed at 1, while presence_penalty and frequency_penalty are fixed at 0.
+        # beta limitations for o1 series models:
+        # - user and assistant messages only, system messages are not supported.
+        # - temperature, top_p and n are fixed at 1, while presence_penalty and frequency_penalty are fixed at 0.
+        filtered_messages = [msg for msg in messages if msg['role'] in ['user', 'assistant']]
         return client.chat.completions.create(
             model=OPENAI_MODEL_NAME,
-            messages=messages,
+            messages=filtered_messages,
             max_completion_tokens=OPENAI_MAX_TOKENS,
         )
     else:
