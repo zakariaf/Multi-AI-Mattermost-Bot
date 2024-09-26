@@ -28,12 +28,7 @@ def generate_chat_response(messages):
     """
     try:
         logger.debug(f"Sending messages to OpenAI: {messages}")
-        response = client.chat.completions.create(
-            model=OPENAI_MODEL_NAME,
-            messages=messages,
-            max_tokens=OPENAI_MAX_TOKENS,
-            temperature=OPENAI_TEMPERATURE
-        )
+        response = create_chat_completion(messages)
         assistant_message = response.choices[0].message.content.strip()
         logger.debug(f"Received response from OpenAI: {assistant_message}")
         return assistant_message
@@ -84,3 +79,26 @@ def transcribe_audio(audio_file_path):
     except Exception as e:
         logger.error(f"Error transcribing audio: {e}")
         return "I'm sorry, I couldn't transcribe the audio."
+
+def create_chat_completion(messages):
+    """
+    Generate completions for the specified model with the given messages.
+
+    :param messages: List of message dictionaries with 'role' and 'content'.
+    :return: The completion response.
+    """
+    if OPENAI_MODEL_NAME in ["o1-mini", "o1-preview"]:
+        # temperature, top_p and n are fixed at 1, while presence_penalty and frequency_penalty are fixed at 0.
+        return client.chat.completions.create(
+            model=OPENAI_MODEL_NAME,
+            messages=messages,
+            max_completion_tokens=OPENAI_MAX_TOKENS,
+        )
+    else:
+        return client.chat.completions.create(
+            model=OPENAI_MODEL_NAME,
+            messages=messages,
+            max_completion_tokens=OPENAI_MAX_TOKENS,
+            temperature=OPENAI_TEMPERATURE
+        )
+
