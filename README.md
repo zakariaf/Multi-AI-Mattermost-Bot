@@ -1,4 +1,6 @@
-# Multi-AI Mattermost Bot
+![Under Development](https://img.shields.io/badge/status-under%20development-yellow.svg)
+
+# Multi-AI Mattermost Bot (Under Development)
 
 A modular and extensible Python-based bot for Mattermost that integrates with various AI tools through a plugin architecture. This bot enables intelligent and automated interactions within your team's communication channels, supporting functionalities like chat, image generation, audio transcription, and more.
 
@@ -23,6 +25,8 @@ A modular and extensible Python-based bot for Mattermost that integrates with va
   - [Adding New Plugins](#adding-new-plugins)
 - [Development](#development)
 - [Testing](#testing)
+- [Development Status](#development-status)
+- [Upcoming Features](#upcoming-features)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -523,6 +527,60 @@ Ensure all components work as expected by running test scripts and verifying int
   ```bash
   python run_tests.py
   ```
+
+## Development Status
+
+The **Multi-AI Mattermost Bot** is actively under development. Currently, it offers foundational functionalities, including:
+
+- **Text Interactions:** Engaging in conversations and responding to user queries.
+- **Image Processing:** Analyzing and responding to image-related commands.
+- **Audio Transcription:** Transcribing audio files using integrated transcription services.
+
+While these core features are operational, the project is evolving to incorporate advanced capabilities and optimizations to enhance user experience, scalability, and maintainability.
+
+## Upcoming Features
+
+The following enhancements and features are planned to elevate the bot's functionality and user experience:
+
+- **Threaded Responses:**
+  - **Description:** Modify the bot to post responses as threaded replies to specific messages instead of sending new standalone messages. This will organize conversations more coherently within Mattermost channels.
+  - **Benefit:** Enhances readability and maintains context within ongoing discussions.
+
+- **Comprehensive Thread Support:**
+  - **Description:** Extend the bot's ability to handle entire threads, allowing it to maintain and reference conversation history within specific threads.
+  - **Benefit:** Enables more meaningful and context-aware interactions within complex conversations.
+
+- **Dockerization:**
+  - **Description:** Containerize the application using Docker to ensure consistent deployment environments and simplify the setup process.
+  - **Benefit:** Facilitates easier deployment across different systems and enhances scalability.
+
+- **Organized Client Libraries:**
+  - **Description:** Create a dedicated `clients` directory to house all AI service client modules (e.g., OpenAI, Claude, Hugging Face), promoting better project structure.
+  - **Benefit:** Improves code organization, making it easier to manage and integrate additional AI services in the future.
+
+- **File Upload Support:**
+  - **Description:** Enable the bot to handle file uploads alongside text, images, and audio. Allow users to upload files (e.g., documents, PDFs) and interact with the bot using these files in combined inputs.
+  - **Benefit:** Expands the bot's utility by allowing it to process and respond to a wider variety of user inputs, similar to platforms like ChatGPT.
+
+- **Enhanced Plugin Architecture:**
+  - **Description:** Refine the plugin system to support a more modular and scalable architecture. This includes improving the `chat_plugin` and other existing plugins to better adhere to the plugin architecture, facilitating easier integration and management of additional plugins.
+  - **Benefit:** Increases the bot's flexibility and maintainability, making it simpler to add or update functionalities through plugins.
+
+- **Multi-Service Integration:**
+  - **Description:** Integrate additional AI services (e.g., Claude, Hugging Face) to diversify the bot's capabilities and offer users a broader range of AI-powered features.
+  - **Benefit:** Enhances the bot's functionality by leveraging various AI models and services, catering to diverse user needs.
+
+- **Comprehensive Testing and Documentation:**
+  - **Description:** Develop extensive unit and integration tests to ensure reliability and maintain comprehensive documentation to assist users and contributors.
+  - **Benefit:** Ensures code quality and facilitates easier onboarding for new contributors, promoting sustainable project growth.
+
+- **Security Enhancements:**
+  - **Description:** Implement robust authentication and authorization mechanisms to secure interactions and data handling within the bot.
+  - **Benefit:** Protects user data and ensures that only authorized users can access and interact with the bot's functionalities.
+
+- **Real-Time Notifications and Analytics:**
+  - **Description:** Provide real-time updates and insights into bot usage and performance, aiding in monitoring and optimization.
+  - **Benefit:** Allows for proactive maintenance and optimization based on usage patterns and performance metrics.
 
 ## Contributing
 
